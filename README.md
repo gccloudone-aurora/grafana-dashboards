@@ -7,7 +7,7 @@ resource for every JSON file in `dashboards/`.
 ## Adding a dashboard
 
 1. Export the dashboard JSON from Grafana and add it to `dashboards/<folder>` using a
-   descriptive filename. Choice of folder depends on the target coverage of the dashboard. 
+   descriptive filename. Choice of folder depends on the target coverage of the dashboard.
 2. If a new folder is needed, add its directory-to-title mapping under
    `folders` in `values.yaml`.
 3. Keep the dashboard `uid` stable and unique. Do not include credentials or
