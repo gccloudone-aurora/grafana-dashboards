@@ -8,9 +8,11 @@ resource for every JSON file in `dashboards/`.
 
 1. Export the dashboard JSON from Grafana and add it to `dashboards/` using a
    descriptive filename.
-2. Keep the dashboard `uid` stable and unique. Do not include credentials,
-   hard-coded environment, or account identifiers.
-3. Run the local validation commands:
+2. If a new folder is needed, add its directory-to-title mapping under
+   `folders` in `values.yaml`.
+3. Keep the dashboard `uid` stable and unique. Do not include credentials or
+   hard-coded environment, customer, or account identifiers.
+4. Run the local validation commands:
 
    ```bash
    find dashboards -name '*.json' -print0 | xargs -0 -n1 jq empty

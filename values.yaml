@@ -1,7 +1,15 @@
-# -- Namespace where GrafanaDashboard resources are created.
+# -- Namespace where GrafanaDashboard resources are created
 namespace: grafana-system
 
-# -- Labels used by the Grafana Operator to select Grafana instances.
+# -- Labels used by the Grafana Operator to select Grafana instances
 instanceSelector:
   matchLabels:
     dashboards: aurora
+
+# -- Folders based on the matching directory under dashboards/
+folders:
+  gitops: GitOps
+  kubernetes: Kubernetes
+  node-exporter: Node Exporter
+  observability: Observability
+  security: Security
