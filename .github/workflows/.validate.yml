@@ -25,8 +25,13 @@ jobs:
       - name: Validate dashboard JSON and UIDs
         run: |
           find dashboards -name '*.json' -print0 | xargs -0 -n1 jq empty
-          test -z "$(jq -r '.uid // empty' dashboards/*.json | sort | uniq -d)"
-          test "$(jq -r 'select((.uid // "") == "") | input_filename' dashboards/*.json | wc -l)" -eq 0
+          find dashboards -name '*.json' -print0 | xargs -0 -n1 jq -e \
+            '(.uid | type == "string" and length > 0)
+            and (.title | type == "string" and length > 0)
+            and (.panels | type == "array")
+            and (.schemaVersion | type == "number")' > /dev/null
+          test -z "$(find dashboards -name '*.json' -exec jq -r '.uid // empty' {} + | sort | uniq -d)"
+          test "$(find dashboards -name '*.json' -exec jq -r 'select((.uid // "") == "") | input_filename' {} + | wc -l)" -eq 0
 
       - name: Lint and render chart
         run: |
@@ -34,6 +39,7 @@ jobs:
           helm template grafana-dashboard-resources . \
             --namespace grafana-system > rendered.yaml
           test "$(find dashboards -name '*.json' | wc -l)" -eq "$(grep -c '^kind: GrafanaDashboard$' rendered.yaml)"
+          test "$(find dashboards -mindepth 1 -maxdepth 1 -type d | wc -l)" -eq "$(grep -c '^kind: GrafanaFolder$' rendered.yaml)"
 
       - name: Enforce individual resource size limit
         run: |
