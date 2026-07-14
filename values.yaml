@@ -1,0 +1,7 @@
+# -- Namespace where GrafanaDashboard resources are created.
+namespace: grafana-system
+
+# -- Labels used by the Grafana Operator to select Grafana instances.
+instanceSelector:
+  matchLabels:
+    dashboards: aurora
