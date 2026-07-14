@@ -1,0 +1,55 @@
+name: Validate dashboards
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.19.0
+
+      - name: Validate dashboard JSON and UIDs
+        run: |
+          find dashboards -name '*.json' -print0 | xargs -0 -n1 jq empty
+          find dashboards -name '*.json' -print0 | xargs -0 -n1 jq -e \
+            '(.uid | type == "string" and length > 0)
+            and (.title | type == "string" and length > 0)
+            and (.panels | type == "array")
+            and (.schemaVersion | type == "number")' > /dev/null
+          test -z "$(find dashboards -name '*.json' -exec jq -r '.uid // empty' {} + | sort | uniq -d)"
+          test "$(find dashboards -name '*.json' -exec jq -r 'select((.uid // "") == "") | input_filename' {} + | wc -l)" -eq 0
+
+      - name: Lint and render chart
+        run: |
+          helm lint .
+          helm template grafana-dashboard-resources . \
+            --namespace grafana-system > rendered.yaml
+          test "$(find dashboards -name '*.json' | wc -l)" -eq "$(grep -c '^kind: GrafanaDashboard$' rendered.yaml)"
+          test "$(find dashboards -mindepth 1 -maxdepth 1 -type d | wc -l)" -eq "$(grep -c '^kind: GrafanaFolder$' rendered.yaml)"
+
+      - name: Enforce individual resource size limit
+        run: |
+          awk '
+            BEGIN { size = 0 }
+            /^---$/ {
+              if (size >= 1048576) exit 1
+              size = 0
+              next
+            }
+            { size += length($0) + 1 }
+            END { if (size >= 1048576) exit 1 }
+          ' rendered.yaml

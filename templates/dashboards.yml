@@ -1,0 +1,29 @@
+{{- range $folderName, $folderTitle := .Values.folders }}
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaFolder
+metadata:
+  name: {{ $folderName }}
+  namespace: {{ $.Values.namespace | quote }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  instanceSelector:
+{{ toYaml $.Values.instanceSelector | nindent 4 }}
+  title: {{ $folderTitle | quote }}
+{{- range $path, $_ := $.Files.Glob (printf "dashboards/%s/*.json" $folderName) }}
+{{- $dashboardName := trimSuffix ".json" (base $path) }}
+---
+apiVersion: grafana.integreatly.org/v1beta1
+kind: GrafanaDashboard
+metadata:
+  name: {{ $dashboardName }}-dashboard
+  namespace: {{ $.Values.namespace | quote }}
+spec:
+  folderRef: {{ $folderName }}
+  instanceSelector:
+{{ toYaml $.Values.instanceSelector | nindent 4 }}
+  json: |-
+{{ $.Files.Get $path | nindent 4 }}
+{{- end }}
+{{- end }}
