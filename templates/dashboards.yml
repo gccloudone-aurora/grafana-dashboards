@@ -5,8 +5,6 @@ kind: GrafanaFolder
 metadata:
   name: {{ $folderName }}
   namespace: {{ $.Values.namespace | quote }}
-  annotations:
-    argocd.argoproj.io/sync-wave: "-1"
 spec:
   instanceSelector:
 {{ toYaml $.Values.instanceSelector | nindent 4 }}
