@@ -13,3 +13,4 @@ folders:
   node-exporter: Node Exporter
   observability: Observability
   security: Security
+  service-mesh: Service Mesh
